@@ -23,7 +23,7 @@
     });
     (async _ => {
         try {
-            await fastify.listen(9000, '0.0.0.0');
+            await fastify.listen(1208, '0.0.0.0');
             console.log('running');
         } catch (error) {
             fastify.log.error(error);
