@@ -5,11 +5,20 @@
     impl(root, name, deps, factory);
 })(this, 'server', {
     fastify: 'fastify',
+    multipart: 'fastify-multipart',
+    static: 'fastify-static',
+    fs: 'fs',
 }, (exports, libs, env) => {
     // factory
     const fastify = libs.fastify({
         logger: true,
     });
+    fastify.register(libs.multipart);
+    fastify.register(libs.static, {
+        root: __dirname,
+        prefix: '/static',
+    });
+    const fs = libs.fs;
     fastify.get('/', async (request, reply) => {
         return {
             hello: 'world!',
@@ -20,6 +29,21 @@
         return {
             message: request.params.message,
         };
+    });
+    fastify.get('/img', async (request, reply) => {
+        return fs.readdirSync('images');
+    });
+    fastify.post('/', async (request, reply) => {
+        request.multipart((field, file, filename, encoding, mimetype) => {
+            console.log('part', field, file, filename, encoding, mimetype);
+            file.pipe(fs.createWriteStream(Date.now() + '.png'));
+        }, error => {
+            reply.code(200).send({
+                message: 'got it',
+            });
+        }).on('field', (key, value) => {
+            console.log('form-data', key, value);
+        });
     });
     (async _ => {
         try {
